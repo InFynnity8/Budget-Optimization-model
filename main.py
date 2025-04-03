@@ -10,13 +10,18 @@ app = FastAPI()
 # Load the trained linear regression model and budget optimization coefficients
 model = joblib.load('linear_regression_model.pkl')
 budget_coeffs = np.load('budget_optimization_coeffs.npy')
+bounds = np.load('budget_bounds.npy')
+
+# Extract individual channel bounds
+min_tv, max_tv = bounds[0]
+min_radio, max_radio = bounds[1]
+min_newspaper, max_newspaper = bounds[2]
 
 class BudgetRequest(BaseModel):
     budget: condecimal(gt=0)  # Ensures the budget is greater than 0
 
 @app.post("/optimize-budget/")
 def optimize_budget(request: BudgetRequest):
-    budget = float(request.budget)
     
     # Define the objective function (negative means we maximize sales)
     c = -budget_coeffs 
@@ -25,8 +30,8 @@ def optimize_budget(request: BudgetRequest):
     b = [float(request.budget)]  # User-defined budget
 
     # Bounds: Min & max spend per channel
-    bounds = [(1000, 30000), (500, 15000), (200, 10000)]
-
+    bounds = [(min_tv, max_tv), (min_radio, max_radio), (min_newspaper, max_newspaper)]
+    
     # Solve the optimization problem
     result = linprog(c, A_eq=A, b_eq=b, bounds=bounds, method="highs")
 
@@ -37,7 +42,6 @@ def optimize_budget(request: BudgetRequest):
         # Predict sales using the optimized budget
         user_data = np.array([[tv_spend, radio_spend, newspaper_spend]])
         predicted_sales = model.predict(user_data)[0]
-        
         return {
             "Optimized TV Budget": round(tv_spend, 2),
             "Optimized Radio Budget": round(radio_spend, 2),

@@ -1,4 +1,4 @@
-fastapi[standard] --no-cache-dir
+fastapi
 uvicorn
 numpy
 scipy
