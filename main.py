@@ -30,7 +30,7 @@ def optimize_budget(request: BudgetRequest):
     b = [float(request.budget)]  # User-defined budget
 
     # Bounds: Min & max spend per channel
-    bounds = [(min_tv, max_tv), (min_radio, max_radio), (min_newspaper, max_newspaper)]
+    bounds = [(min_tv * 100, max_tv), (min_radio* 100, max_radio), (min_newspaper* 100, max_newspaper)]
     
     # Solve the optimization problem
     result = linprog(c, A_eq=A, b_eq=b, bounds=bounds, method="highs")
